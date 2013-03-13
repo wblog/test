@@ -1,0 +1,241 @@
+2012.12.18对模板作了规范
+public function getpage($Modulename,$where='', $pagesize=12,$order='ord asc,id desc') {
+		$M = M($Modulename);
+		import("ORG.Util.Page");
+		$count = $M->where($where)->count(); //计算总数
+		$p = new Page($count, $pagesize);
+		$lists = $M->where($where)->limit($p->firstRow . ',' . $p->listRows)->order($order)->select();
+		$p->setConfig('header', '条');
+		$p->setConfig('prev', "<");
+		$p->setConfig('next', '>');
+		$p->setConfig('first', '<<');
+		$p->setConfig('last', '>>');
+		return array('lists'=>$lists,'page'=>$p->show());
+		}
+		
+		
+		
+2012.12.19通用列表是发布版所写，用在节点列表和公共列表中，发布版已优化了上传
+
+ $Modelist=$Attach->Distinct(true)->field('module')->select();用在了栏目模型过滤和附件模型名称过滤
+2012.12.28留言敏感词过滤成功
+2012.12.30优化上传功能，可以添加上传文件的描述;对上传文件作了配置，尚未完善。wb_attach表增加了alt字段
+2013.01.05优化了角色代码，新增了公告图片，附件上传代码和配置。
+2013.01.15实现UCenter与wblog同步注册
+2013.01.16实现UCenter与wblog同步登录和退出。
+2013.01.17
+1、修复了后台和会员修改密码时验证码的共享
+2、修复了前台样式在谷哥和火狐浏览器首页不能居中的问题body {
+	
+	font:14px/20px Arial,Helvetica,sans-serif;
+	color:#3D3C2C;
+	font-weight:normal;
+	margin:0px;
+	background-color:#E4E2CC;
+	float:right;//问题所在
+	
+}
+3、修复了上传图片时添加图片描述时删除了上传框。
+4、删除了后台样式style.css、“通用表单”、*当前位置*、，删除main.css,top.css合到style.css里了,删除多余的frame.css和main_top.html
+5、把前台首页和标签云集的标签加粗了，并且首页的标签去掉了li
+2013.01.18
+1、前台页面布局修改为960
+2、调整公告的长度样式
+3、修改上传功能,经测试，可以使用，待完善的地方，单页和水印。
+   //上传类型$type 的值：image（图片）；thumb(缩略图)；file(文件)
+	public function upload($model = null, $type = 'image'){
+		//导入上传类
+		import('ORG.NET.UploadFile');
+		$upload = new UploadFile();
+        $upload->saveRule = 'uniqid'; //设置上传文件规则
+		$upload->maxSize = C('MAXSIZE')*1024*1024;	//上传文件大小	
+		$upload->allowExts = explode(',', C('ALLOWEXTS'));//文件类型
+	
+		if ($model){
+			$upload->savePath = './Public/Uploads/'.$model.'/';
+			if (!file_exists($upload->savePath)) {
+			  mkdir($upload->savePath);
+		    }
+		}else{
+			$upload->savePath = './Public/Uploads/Thumb/';
+			if (!file_exists($upload->savePath)) {
+			  mkdir($upload->savePath);
+			}
+		}
+		if (in_array($type,array('image','thumb'))){
+			$upload->thumb = true;
+			$upload->thumbRemoveOrigin  = true;// //删除原图
+			$upload->thumbPrefix = 'wb_';	
+			$upload->thumbMaxWidth = $type=='thumb' ? C('THUMB_W') :C('IMAGE_W');//缩略图宽度
+			$upload->thumbMaxHeight = $type=='thumb' ? C('THUMB_H') :C('IMAGE_H');//缩略图高度	
+				
+		}
+		if (!$upload->upload()) {
+			return $upload->getErrorMsg();
+		}else{
+			$uploadlist = $upload->getUploadFileInfo();
+		}
+		if (in_array($type,array('image','file'))){
+			return $this->_add($uploadlist,$model);
+		}else{
+			return $uploadList[0]['savename'];//返回缩略图保存名称
+		}		
+	}
+2013.01.19
+1、在后台的公共添加，更新方法和在前台公共添加方法中增加了过滤方法。
+if(!$this->isPost()) {
+			$this->error('非法请求');
+			}
+   前台明细页,gettourl,getags添加if(!$this->isGet()) {
+			$this->error('非法请求');
+			}   
+2、前台引用了Input类过滤数据,删除了之前公共函数库里面的函数 
+3、实现了添加水印，批量也可以,同时更正了删除附件方法
+if(C('ISWATER')){
+			  import('ORG.Util.Image');
+              //给m_缩略图添加水印, Image::water('原文件名','水印图片地址')
+			  foreach ($uploadlist as $key => $value){
+                Image::water($value['savepath'] . 'wb_' . $value['savename'], './Public/admin/images/water.png');
+			 }
+		    }
+$file='Public'.DIRECTORY_SEPARATOR.'Uploads'.DIRECTORY_SEPARATOR.'Picture'.DIRECTORY_SEPARATOR.'wb_'.$savename;
+2013.01.22
+后台菜单在火狐不能展开，现在已修复
+2013.01.24
+1更新后台菜单
+2修正添加用户 》添加用户路径错误
+3用户控制器添加了
+public function edit() {
+             $this->getedit();
+			 $this->display(); 
+            }
+public  function update() {
+            $this->getupdate();
+   }
+4在setaccess模板添加<input type=hidden name="role_id" value="{$role_id}">
+--------------------------------------------------------------------------------
+
+2013.01.25
+1、对权限作了测试，非超级管理员必须拥有Index/index权限才可登录到后台，否则会进入死循环。
+2、添加节点时，状态为0，现已修正
+3、删除了节点和用户列表的管理操作的“删除”
+4、更改节点、角色添加的表单验证
+5、节点添加了状态修改
+2013.01.26
+1、更新后台用户的模板
+2、评论的博客列表多选框换成了JS代码了。
+3、友情链接，广告添加时JS换切在火狐下不法执行，现在修正
+4、友情链接的修改添加了表单验证
+    注意
+<script type="text/javascript" src="__PUBLIC__/Js/jquery-1.4.3.min.js"></script>
+<script language="javascript" type="text/javascript" src="__PUBLIC__/Js/formvalidator.js" charset="UTF-8"></script>
+的顺序不能错，否则无法实现。
+表单要添加id="myform"
+5、添加了编辑
+public function edit(){  		      
+		$this->getedit();
+		$this->display();
+    }	
+6、公告编辑添加了表单验证
+7、留言评论添加了字节截取,和样式完善。
+8、解决添加栏目时选择模型不出现相应栏目项的问题，
+public function modelist(){
+			$mlist=M('Columns')->Distinct(true)->field('model,modelid')->select();
+			 return $mlist;
+			}
+多添加了,modelid字段
+2013.01.28
+1更改了文章、博客、图片、下载缩略图添加和更新的上传。
+2更改			cssPath : 'http://127.0.0.1/WBlog1/Public/kindeditor/plugins/code/prettify.css',为
+      cssPath : '__PUBLIC__/kindeditor/plugins/code/prettify.css'
+2013.01.29
+1更改了栏目，友情链接、广告（广告的修改还未完成）缩略图添加和更新的上传。
+2013.2.6
+更新了后台样式
+2013.02.18
+1、安装包添加了安装域名,并验证了用户名等只能是数字和字母。
+2、修正了安装程序时存在数据库名无法安装的情况
+3、修正了模板修改、评论的博客评论主页和广告添加页的样式
+2013.2.19
+1、修正了根目录路径的生成
+2、修正了文章博客列表点击评论时显示的错误
+if (isset ($_GET['nid']) && !empty($_GET['nid'])) {
+			$where['isreply']=array('neq',1);
+		    $where['nid']=array('eq',$_GET['nid']);
+		}else {
+		    $where['isreply']=array('neq',1);
+		    $where['nid']=array('gt',0);
+			
+		}
+2013.2.23
+修正后台列表的查询中列表数据分页点击的错误。
+2013.2.26
+//修正删除缩略图2013.2.26
+	public function delthumb($thumb) {
+		if ($thumb !== false) {
+		$thumbfile='Public'.DIRECTORY_SEPARATOR.'Uploads'.DIRECTORY_SEPARATOR.'Thumb'.DIRECTORY_SEPARATOR.'wb_'.$thumb;		
+		  if(is_file($thumbfile)){
+		    unlink($thumbfile);
+			}                   										
+		}
+	}
+2、删除了单页缩略图功能
+2013.2.27
+1、修改了附件上传页的样式和温馨提示（使用动态数据，与配置一致）
+2、添加了文章和博客列表的浏览功能
+2013.3.2
+1、后台公共控制器多添加了模型识别条件'module'=>$Modulename
+public function recordnum($lists, $Modulename) {
+		
+		if ($lists !== false) {
+			
+			if (in_array($Modulename, array('News','Blog'))) {
+
+				$pid = ($Modulename == 'News') ? 'nid' : 'bid';
+				foreach ($lists as $k => $v) {
+					$map[$pid] = $v['id'];
+					$lists[$k]['total'] = M("Comment")->where($map)->count();
+				}
+				
+			}elseif(in_array($Modulename, array('Picture','Download','Page'))){
+				foreach ($lists as $k => $v) {	
+				  $lists[$k]['total'] = M('Attach')->where(array('recordId'=> $v['id'],'module'=>$Modulename))->count();
+				}
+			}
+			return $lists;
+		}
+	}
+2、fbWBlog数据表的附件表多添加了alt字段，否则附件表无法写入数据。
+3、删除UploadAction.class.php
+4、从附件列表上删除不同模型的附件成功
+foreach($getid as $v){				
+				$vo=$Attach->field('id,savename,module')->where(array('id' =>$v))->find();
+				$result = $Attach->where(array('id'=>$v))->delete();
+			   if($result !==false){
+				    $filename= ($vo['module'] =='Picture')?'wb_'.$vo['savename'] : $vo['savename'];
+				    $file='Public'.DIRECTORY_SEPARATOR.'Uploads'.DIRECTORY_SEPARATOR.$vo['module'].DIRECTORY_SEPARATOR.$filename;			     
+			      if(is_file($file)){
+				   unlink($file);				
+				 }
+				}
+5、删除图片和下载时同时删除附件
+6、删除了配置路径中附件上传路径
+7、修改了单页上传类型，只能是文件
+if (!empty($_FILES)) {//如果有文件上传
+		    $model=trim($_POST['module']);
+		    if($model=='Picture'){
+				$type='image';
+			}else{
+				$type='file';
+			}
+8、取消了图片和下载的评论
+9、删除图片和下载后
+2013.3.7
+修改了安装包的博客模型ID$sqls[] = "INSERT INTO `" . $db_prefix . "columns` VALUES ('2', '0', '0', '1', '2', '博客', '0', '0', '博客', '', '网志博客', '0', '0');";
+2013.3.10
+单添加了计数字段  `hits` int(10) NOT NULL,
+2、新闻和单页添加了一项默认数据
+2013.3.12
+文章表添加了`author` varchar(30) NOT NULL,
+2、设置了栏目在前台导航的是否显示
+$this->assign('menu', D('Columns')->menu());

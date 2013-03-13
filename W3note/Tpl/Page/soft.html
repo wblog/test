@@ -1,0 +1,233 @@
+<include file="Public:header"/>
+
+<load href="/EWAYCMS/Public/Jquery/jquery.js" />
+<load href="/EWAYCMS/Public/Jquery/jquery.form.js" />
+<script language="JavaScript">
+    <!--
+    $(function(){
+        $('#form1').ajaxForm({
+		    beforeSubmit:  check,  // pre-submit callback
+            success:       complete,  // post-submit callback
+            dataType: 'json'
+        });
+        function check(){
+            if( '' == $.trim($('#author').val())){
+                $('#result').html('标题不能为空').show();
+                return false;
+            }
+			if($('#author').val().length >=20 || $('#author').val().length <=3){
+			   $('#result').html('昵称的长度要在3-20之间').show();
+                return false;
+			}
+			if($('#content').val().length >=500 || $('#content').val().length <=3){
+			   $('#result').html('内容字数要在1-250之间').show();
+                return false;
+			}
+			if($('#email').val().match(/\w+@\w+\.\w/)){
+			   
+               return true;
+			}else{
+			  $('#result').html('要按邮箱规则输入').show();
+			  return false;
+			}
+
+			
+        }
+        function complete(data){
+            if (data.status==1){
+                $('#result').html(data.info).show();
+                // 更新列表
+                data = data.data;
+                var html =  '<div class="result" style=\'font-weight:normal;background:#A6FF4D\'><div style="border-bottom:1px dotted silver">'+data.author+'  ['+data.email+data.url+']</div><div class="content">'+data.content+'</div></div>';
+                $('#list').prepend(html);
+				$('#reset').click(); 
+				
+				//window.setTimeout(function (){window.location.reload(),50000});
+				$('#result').html('评论成功!').show(); 
+				window.setTimeout(function (){window.location.reload()},2000);
+				window.setTimeout(function (){window.location.href = "#comment"},500);
+				//window.location = "#comment";
+            }else{
+                $('#result').html(data.info).show();
+            }
+        }
+
+    });
+    
+    //-->
+    </script>
+<div class="container"><!--container-begin -->
+  <div class="pagebody">
+    <!--pagebody-begin -->
+    <div class="leftpage">
+      <!--leftpage-begin -->
+      <div class="updow">
+        <!-- updow-begin -->
+        <div class="up">{$pagedown}</div>
+		<div class="down">{$pageup}</div>
+		</div>
+      <!-- updow-end -->
+     <div class="info">
+        <!-- info-begin -->
+        <div class="postinfo">
+          <div class="date">
+            <!-- date-begin -->
+            <div class="t"><strong>{$vo.inputtime|date="m",###}月</strong></div>
+            <div class="d"><strong>29</strong></div>
+          </div>
+          <!-- date-end -->
+          <div class="title"><strong><a title="{$vo.title}" href="{:U('/Blog/'.$vo['id'])}">{$vo.title}</a></strong></div>
+		  <div class="tinfo">
+          <!--<div class="author">作者:张钰文</div>-->
+          <div class="cat">分类:<a title="{$vo.colTitle}" href="{:U('/Index/'.$vo['catid'])}">{$vo.colTitle}</a></div>
+          <div class="brownum">浏览:{$vo.hits}</div>
+          <div class="comnum">
+           <!-- Baidu Button BEGIN -->
+    <div id="bdshare" class="bdshare_t bds_tools get-codes-bdshare">
+        <span class="bds_more">分享到：</span>
+        <a class="bds_qzone"></a>
+        <a class="bds_tsina"></a>
+        <a class="bds_tqq"></a>
+        <a class="bds_renren"></a>
+		<a class="shareCount"></a>
+    </div>
+     <script type="text/javascript" id="bdshare_js" data="type=tools&amp;mini=1" ></script>
+     <script type="text/javascript" id="bdshell_js"></script>
+     <script type="text/javascript">
+	    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + new Date().getHours();
+     </script>
+   <!-- Baidu Button END -->
+          </div>
+		  </div>
+          <div class="line"></div>
+        </div>
+        <!-- postinfo-end -->
+        <div class="post">{$vo.content}</div>
+        <div class="tag">tags:<a href="__APP__/Blog/tag/name/{$vo.keywords|urlencode}">{$vo.keywords}</a></div>
+        <div class"comnum"><!--<a href="#comment">【已有人发表了看法，你呢？】</a>--></div>
+      </div>
+      <!-- info-end -->
+      <!-- rela- -->
+      <div class="rela">
+      <div class="title"><strong>相关阅读</strong></div>
+      
+      <div class="relainfo">
+      <volist name="relalist" id="r">
+      <li><a title="{$r.title}" href="{:U('/Blog/'.$r['id'])}">{$r.title}</a></li>
+      </volist>
+      </div>
+      
+      </div>
+      <div class="comtit">〖评论〗</div>
+	  <volist name="ctlist" id="ct">
+	   <div class="comment">
+       
+	   <div class="line10"></div>
+         <div class="cominfo">
+           <if condition="$ct.url neq  ''">
+        <span style="font-size:30px;color:#D64700;">☞</span><a title="{$ct.author}" href="__URL__/tourl/id/{$ct.id}/url/{$ct.url|tourl}">{$ct.id}楼{$ct.author}</a> 回复该留
+        <else />
+         <span style="font-size:30px;color:#D64700;">☞</span><a href="{:U('/Blog/'.$vo['id'])}#cmt{$ct.id}">{$ct.id}楼{$ct.author}</a> 回复该留
+        </if>
+      </div>
+	  <div class="cominfo">
+        Post:{$ct.inputtime|date="Y-m-d H:i:s",###}
+      </div>
+	  <div class="cominfo">
+        {$ct.content}
+      </div>
+	  <volist name="ct['Reply']" id="sub">
+	   <if condition="$sub.recontent neq  ''">
+	  <div class="recommet">
+	     <li>{$sub.rauthor}于{$sub.rtime|date="Y-m-d H:i:s",###}回复</li>
+	     <li><span style="font50">"</span> {$sub.recontent}</li>
+	     
+	  </div>
+	  </if>
+	 </volist>
+      <div class="line10"></div>
+	  </div><!-- comment-end -->
+	  
+	  </volist>
+	   <!--<div class="comment">
+       <div id="result" class="none result" style="font-family:微软雅黑,Tahoma;letter-spacing:2px"></div>
+	   <form method="post" action="__URL__/add" id="form1" name="form1" onsubmit="return regs('click')">
+	 <li><input type="text" name="author" value="" id="author" size="40" />&nbsp;昵称(必填项)<a name="comment" id="comment" >&nbsp;  </a> </li>
+	 <li><input type="text" name="email" value="" id="email" size="40"/>&nbsp;Emial</li>
+	 <li><input type="text" name="url" value="" id="url" size="40"/>&nbsp;个人主页</li>
+	 <li><textarea name="content" id="content" style="width:550px;height:100px;"></textarea></li>
+	 <input type="hidden" name="nid" value="{$vo.id}" id="nid" />
+	 <div class="line10"></div>
+	 <li><input type="submit" name="dosubmit" id="dosubmit" value="发表评论"/>
+	 <input type="reset"  name="reset" id="reset" value="重置"></li>
+
+	 
+     </form> 
+	   </div>
+      -->
+   <div class="line10"></div>
+    </div><!--leftpage-end -->
+    <div class="rightpage">
+      <div class="search">
+        <input type="text" name="yourname" size="30"  value="" />
+        <strong>搜索</strong></div>
+      <!--search-end -->
+      <div class="barnner"> 
+	  <li>
+	  
+	  </li> 
+	  </div><!--barnner-end -->
+      <div class="l_tit">软件下载</div>
+      <div class="rand">
+        <ul>
+          <volist name="loadlist" id="attach" >
+          <li><span style="font-size:12px;color:#D64700;">☞&nbsp;&nbsp;</span><a title="{$attach.name}" href="__URL__/download/id/{$attach.id}">{$attach.name}{$attach.id}</a></li>
+         </volist>
+        </ul>
+      </div>
+      <div class="l_tit">RSS订阅w3网记博客</div>
+      <div class="about"><a title="RSS订阅网记博客" href="__APP__/Feed/index"><img src="/Public/E-blog/images/RSS.gif" title="Green Solutions" alt="Green Solutions" width="163" height="48" border="0"/></a></div>
+      <!--about-end -->
+      <div class="l_tit">热点文章</div>
+      <div class="rand">
+        <ul>
+          <volist name="hotlist" id="hot">
+          <li><span style="font-size:12px;color:#D64700;">☞&nbsp;&nbsp;</span><a title="{$hot.title}" href="{:U('/Web/'.$hot['id'])}">{$hot.title}</a></li>
+         </volist>
+        </ul>
+      </div>
+     
+      <div class="l_tit">站点分类</div>
+      <div class="catlist">
+        <ul>
+		<volist name="Catlist" id="cat">
+          <li><a href="{:U('/Index/'.$cat['colId'])}">{$cat['space']}{$cat['colTitle']}「{$cat['total']}」</a></li>
+		   </volist>
+        </ul>
+      </div>
+      <div class="l_tit">文章归档</div>
+      <div class="month">
+        <ul>
+        <volist name="DateList" id="m">
+          <li><span style="font-size:12px;color:#D64700;">►</span>&nbsp;&nbsp;<a title="文章{$m.Time}归档" href="__APP__/Index/index/t/{$m.Time}">{$m.Time}</a></li>
+         </volist>
+        </ul>
+      </div>
+    <!--DateList-end -->
+    <div class="l_tit">分类标签【<a href="__APP__/Web/tag/name/">更多</a>】</div>
+      <div class="tags">
+        <ul>
+         <volist id="vo" name="tags" >
+          <li><span style="font-size:12px;color:#D64700;">►</span>&nbsp;&nbsp;<a title="{$vo.name}" href="__APP__/Web/tag/name/{$vo.name|urlencode}">{$vo.name}</a></li>
+           </volist>
+        </ul>
+      </div><!--tags-end -->
+  </div>
+  <!--pagebody-end -->
+  <!-- <div class="clear"></div>-->
+</div><!--container-end -->
+ <include file="Public:footer"/>
+
+
+ 
+

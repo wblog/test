@@ -1,0 +1,17 @@
+<div class="ncoments">
+        
+		<volist name="$content" id="ctlist">
+          <ul>
+          <li>
+          <if condition="$ctlist.nid eq 0">
+          <a  href="{:U('/blog/'.$ctlist['bid'])}#cmt{$ctlist.id}">
+          <else />
+          <a  href="{:U('/web/'.$ctlist['nid'])}#cmt{$ctlist.id}">
+           </if>
+           <span>    </span>  {$ctlist.content|msubstr=0,50}</a>
+           <li style="text-align:right">--{$ctlist.username}</li>
+          </li>
+           </ul>
+         </volist>
+       
+      </div>
